@@ -70,4 +70,10 @@ class ChatRoom:
                 return p.linkCount / d if d else 0
         return 0
 
+    def GetCallRatio(self, name):
+        d = sum(p.callCount for p in self.people)
+        for p in self.people:
+            if(p.name == name):
+                return p.callCount / d if d else 0
+        return 0
         

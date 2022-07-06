@@ -17,25 +17,39 @@ class LineParse:
         yyyy : int
         mm : int
         dd : int
+        dayInWeek : string
         for data in lineData:
-            matchDate = re.match(r'(\d{4})/(\d+)/(\d+).*', data)
+            #match yyyy/mm/dd(DayOfWeek)
+            matchDate = re.match(r'(\d{4})/(\d+)/(\d+).(.{2}).*', data)
+            #match HH:mm "Name" "Message"
             matchMessage = re.match(r'(\d{2}):(\d{2})\t(.*)\t(.*)', data)
             if(matchDate):
                 yyyy = matchDate.group(1)
                 mm = matchDate.group(2)
                 dd = matchDate.group(3)
+                dayInWeek = matchDate.group(4)
                 #print(matchDate.groups())
             elif(matchMessage):
+                #message match [..] or [....]
                 messageDecode = re.match(r'\[(.{2}|.{4})\]', matchMessage.group(4))
+                #message match ^https:.*
                 httpDecode = re.search(r'(https:.*)', matchMessage.group(4))
+                #message match 通話時間 mm:ss
+                callDecode = re.match(r'通話時間 (\d*):(\d{2})', matchMessage.group(4))
                 messageType = "None"
                 if(messageDecode):
                     messageType = messageDecode.group(1)
                 elif(httpDecode):
                     messageType = "WebLink"
+                elif(callDecode):
+                    messageType = "Call"
                     
                 self.__chatNames.add(matchMessage.group(3))
-                chat = ChatData(yyyy, mm, dd, matchMessage.group(1), matchMessage.group(2), matchMessage.group(3), messageType, matchMessage.group(4))
+                chat = ChatData(yyyy, mm, dd, dayInWeek, matchMessage.group(1), matchMessage.group(2), matchMessage.group(3), messageType, matchMessage.group(4))
+                if(messageType == "Call"):
+                    totalSec = int(callDecode.group(1))*60
+                    totalSec += int(callDecode.group(2))
+                    chat.SetCallDuration(totalSec)
                 self.__chatData.append(chat)
                 #print(matchMessage.groups())
             else:
@@ -65,6 +79,9 @@ class LineParse:
 
     def GetSendLinkCount(self, name):
         return len([x for x in self.__chatData if x.who == name and x.messageType == "WebLink"])
+    
+    def GetCallCount(self, name):
+        return len([x for x in self.__chatData if x.who == name and x.messageType == "Call"])
 
     def GetMessageCount(self, name):
         return len([x for x in self.__chatData if x.who == name and x.messageType == "None"])
@@ -96,6 +113,12 @@ class LineParse:
     def GetChatsCountFromDayAndWho(self, dayIndex, name):
         dates = self.GetAllChatDates()
         return len([x for x in self.__chatData if x.date == dates[dayIndex-1] and x.who == name])
+
+    def GetTotalCallSeconds(self, name):
+        totalCallSeconds = 0
+        for data in [x for x in self.__chatData if x.who == name and x.messageType == "Call"]:
+            totalCallSeconds += data.callDurationInSec
+        return totalCallSeconds
 
     def GetTopXMostFrequentLine(self, n):
         wordSet = {"test": 0}
