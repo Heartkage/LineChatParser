@@ -23,9 +23,12 @@ for name in names:
 
 for name in names:
     person : Person = chatRoom.GetPerson(name)
+    callHours = int(person.callTotalSeconds / 3600)
+    callMinutes = int(person.callTotalSeconds / 60)
+    CallSeconds = int(person.callTotalSeconds % 60)
     print("{}: {}則({:.0%})".format(name, person.totalChats, chatRoom.GetChatRatio(name)))
     print("    {} 串文字({:.0%}), {} 總字數({:.0%})".format(person.messageCount, chatRoom.GetMessageRatio(name), person.totalWordCount, chatRoom.GetWordRatio(name)))
-    print("    {} 貼圖({:.0%}), {} 照片({:.0%}), {} 影片({:.0%}), {} 語音訊息({:.0%}), {} 網址連結({:.0%}), {} 通話次數({:.0%}), 總通話時間: {}s".format(person.stickerCount, chatRoom.GetStickerRatio(name), person.pictureCount, chatRoom.GetPictureRatio(name), person.videoCount, chatRoom.GetVideoRatio(name), person.voiceCount, chatRoom.GetVoiceRatio(name), person.linkCount, chatRoom.GetLinkRatio(name), person.callCount, chatRoom.GetCallRatio(name),person.callTotalSeconds))
+    print("    {} 貼圖({:.0%}), {} 照片({:.0%}), {} 影片({:.0%}), {} 語音訊息({:.0%}), {} 網址連結({:.0%}), {} 通話次數({:.0%}), {}:{:02d}:{:02d} 總通話時間".format(person.stickerCount, chatRoom.GetStickerRatio(name), person.pictureCount, chatRoom.GetPictureRatio(name), person.videoCount, chatRoom.GetVideoRatio(name), person.voiceCount, chatRoom.GetVoiceRatio(name), person.linkCount, chatRoom.GetLinkRatio(name), person.callCount, chatRoom.GetCallRatio(name), callHours, callMinutes, CallSeconds))
 print("")
 
 # totalChatDays = line.GetChatTotalDays()
