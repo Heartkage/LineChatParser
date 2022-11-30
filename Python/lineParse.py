@@ -32,8 +32,8 @@ class LineParse:
             elif(matchMessage):
                 #message match [..] or [....]
                 messageDecode = re.match(r'\[(.{2}|.{4})\]', matchMessage.group(4))
-                #message match ^https:.*
-                httpDecode = re.search(r'(https:.*)', matchMessage.group(4))
+                #message match ^https?:.*
+                httpDecode = re.search(r'(https?://.*|www\..*)', matchMessage.group(4))
                 #message match 通話時間 mm:ss
                 callDecode = re.match(r'通話時間 (\d*):(\d{2})', matchMessage.group(4))
                 messageType = "None"
@@ -106,6 +106,10 @@ class LineParse:
             days.add(chat.date)
         return len(days)
     
+    def GetChatDateFromDayIndex(self, dayIndex):
+        dates = self.GetAllChatDates()
+        return dates[dayIndex - 1]
+
     def GetChatsCountFromDay(self, dayIndex):
         dates = self.GetAllChatDates()
         return len([x for x in self.__chatData if x.date == dates[dayIndex-1]])
@@ -121,18 +125,28 @@ class LineParse:
         return totalCallSeconds
 
     def GetTopXMostFrequentLine(self, n):
-        wordSet = {"test": 0}
+        wordSet = {}
+        senderCount = {}
         for chat in self.__chatData:
             if chat.messageType != "None":
                 continue
             if chat.message in wordSet:
                 wordSet[chat.message] += 1
+                senderCount[chat.message][chat.who] += 1
             else:
                 wordSet[chat.message] = 1
+                senderCount[chat.message] = {}
+                for person in self.__chatNames:
+                    senderCount[chat.message][person] = 0
+                senderCount[chat.message][chat.who] = 1
 
-        data = list(wordSet.items())
-        data.sort(key=lambda x:x[1], reverse=True)
-        return data[:n]
+        datas = list(wordSet.items())
+        datas.sort(key=lambda x:x[1], reverse=True)
+        senderCounter = []
+        for i in range(len(datas)):
+            senderCounter.append(senderCount[datas[i][0]])
+      
+        return {"datas" : datas[:n], "sender" : senderCounter[:n]}
         
     
 
